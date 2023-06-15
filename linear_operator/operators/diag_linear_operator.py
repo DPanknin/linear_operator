@@ -49,7 +49,7 @@ class DiagLinearOperator(TriangularLinearOperator):
 
     @cached(name="cholesky", ignore_args=True)
     def _cholesky(
-        self: Float[LinearOperator, "*batch N N"], upper: Optional[bool] = False
+        self: Float[LinearOperator, "*batch N N"], upper: Optional[bool] = False, jitter=None # TODO changed by DANNY (jitter)
     ) -> Float[LinearOperator, "*batch N N"]:
         return self.sqrt()
 

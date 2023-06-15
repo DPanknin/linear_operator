@@ -24,6 +24,7 @@ from torch import Tensor
 
 import linear_operator
 
+from ..settings import _linalg_dtype_cholesky # TODO added by DANNY
 from .. import settings, utils
 from ..functions._diagonalization import Diagonalization
 from ..functions._inv_quad import InvQuad
@@ -493,7 +494,7 @@ class LinearOperator(object):
 
     @cached(name="cholesky")
     def _cholesky(
-        self: Float[LinearOperator, "*batch N N"], upper: Optional[bool] = False
+        self: Float[LinearOperator, "*batch N N"], upper: Optional[bool] = False, jitter = None # TODO changed by DANNY (jitter,max_tries)
     ) -> Float[LinearOperator, "*batch N N"]:
         """
         (Optional) Cholesky-factorizes the LinearOperator
@@ -519,7 +520,7 @@ class LinearOperator(object):
             return TriangularLinearOperator(evaluated_mat.clamp_min(0.0).sqrt())
 
         # contiguous call is necessary here
-        cholesky = psd_safe_cholesky(evaluated_mat, upper=upper).contiguous()
+        cholesky = psd_safe_cholesky(evaluated_mat, upper=upper, jitter = jitter, max_tries=100).contiguous() # TODO changed by DANNY (jitter,max_tries)
         return TriangularLinearOperator(cholesky, upper=upper)
 
     def _cholesky_solve(
@@ -1292,7 +1293,7 @@ class LinearOperator(object):
 
     @_implements(torch.linalg.cholesky)
     def cholesky(
-        self: Float[LinearOperator, "*batch N N"], upper: bool = False
+        self: Float[LinearOperator, "*batch N N"], upper: bool = False, jitter = None # TODO changed by DANNY (jitter)
     ) -> Float[LinearOperator, "*batch N N"]:  # returns TriangularLinearOperator
         """
         Cholesky-factorizes the LinearOperator.
@@ -1300,7 +1301,7 @@ class LinearOperator(object):
         :param upper: Upper triangular or lower triangular factor (default: False).
         :return: Cholesky factor (lower or upper triangular)
         """
-        chol = self._cholesky(upper=False)
+        chol = self._cholesky(upper=False, jitter = jitter) # TODO changed by DANNY (jitter)
         if upper:
             chol = chol._transpose_nonbatch()
         return chol
